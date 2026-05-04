@@ -2,6 +2,7 @@
 
 class SudokuEnv:
     def __init__(self, board):
+        self.initial_board = [row[:] for row in board]
         self.board = [row[:] for row in board]
 
     def is_valid(self, row, col, value):
@@ -23,7 +24,7 @@ class SudokuEnv:
 
         return True
 
-    def get_empty_cell(self, row, col):
+    def get_empty_cell(self):
         empty = []
         for r in range(9):
             for c in range(9):
@@ -40,8 +41,17 @@ class SudokuEnv:
         return False
 
     def is_solved(self):
-        # If all the cells are not 0, return True
-        return all(self.board[r][c] != 0 for r in range(9) for c in range(9))
+        for r in range(9):
+            for c in range(9):
+                val = self.board[r][c]
+                if val == 0:
+                    return False
+                self.board[r][c] = 0
+                if not self.is_valid(r, c, val):
+                    self.board[r][c] = val
+                    return False
+                self.board[r][c] = val
+        return True
 
     def print_board(self):
         for r in range(9):

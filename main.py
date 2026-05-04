@@ -3,7 +3,6 @@
 from sudoku_env import SudokuEnv
 from sudoku_generator import generate_sudoku, create_sudoku
 
-
 def main():
     # Get the difficulty from user input
     empty_cells = print_menu()
@@ -74,7 +73,7 @@ def play_sudoku(env):
             else:
                 print(f"{num} cannot be placed at ({row+1}, {col+1}). Invalid move.")
 
-            # Check if puzzle is completed
+            # Check if the puzzle is completed
             if all(all(cell != 0 for cell in row_cells) for row_cells in env.board):
                 print("\nCongratulations! You have completed the Sudoku puzzle!")
                 env.print_board()
