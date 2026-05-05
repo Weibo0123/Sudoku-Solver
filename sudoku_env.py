@@ -12,7 +12,28 @@ class SudokuEnv:
     def get_state(self):
         return self.board
 
+    def step(self, action):
+        row, col, value = action
 
+        reward = 0
+        done = False
+
+        if self.board[row][col] != 0:
+            reward = -1
+            return self.get_state(), reward, done, {}
+
+        if not self.is_valid(row, col, value):
+            reward = -1
+            return self.get_state(), reward, done, {}
+
+        self.board[row][col] = value
+        reward = 0.1
+
+        if self.is_solved():
+            reward = 10
+            done = True
+
+        return self.get_state(), reward, done, {}
 
     def is_valid(self, row, col, value):
         # Check the row
