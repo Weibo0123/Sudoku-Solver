@@ -7,7 +7,11 @@ class SudokuEnv:
 
     def reset(self):
         self.board = [row[:] for row in self.initial_board]
+        return self.get_state()
+
+    def get_state(self):
         return self.board
+
 
 
     def is_valid(self, row, col, value):
