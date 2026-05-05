@@ -5,6 +5,11 @@ class SudokuEnv:
         self.initial_board = [row[:] for row in board]
         self.board = [row[:] for row in board]
 
+    def reset(self):
+        self.board = [row[:] for row in self.initial_board]
+        return self.board
+
+
     def is_valid(self, row, col, value):
         # Check the row
         if any(self.board[row][c] == value for c in range(9)):
