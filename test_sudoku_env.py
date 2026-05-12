@@ -33,12 +33,12 @@ def test_is_valid():
 
 def test_get_empty_cell():
     env = SudokuEnv(empty_board)
-    empty_cells = env.get_empty_cell(0,0)
+    empty_cells = env.get_empty_cell()
     # All 81 cells should be empty
     assert len(empty_cells) == 81
 
     env = SudokuEnv(partially_filled_board)
-    empty_cells = env.get_empty_cell(0,0)
+    empty_cells = env.get_empty_cell()
     # Some cells are filled
     assert len(empty_cells) == 51
     # All returned cells should indeed be empty

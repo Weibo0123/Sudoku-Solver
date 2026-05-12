@@ -4,9 +4,12 @@ class SudokuEnv:
     def __init__(self, board):
         self.initial_board = [row[:] for row in board]
         self.board = [row[:] for row in board]
+        self.steps = 0
+        self.max_steps = 200
 
     def reset(self):
         self.board = [row[:] for row in self.initial_board]
+        self.steps = 0
         return self.get_state()
 
     def get_state(self):
@@ -14,6 +17,7 @@ class SudokuEnv:
 
     def step(self, action):
         row, col, value = action
+        self.steps += 1
 
         reward = 0
         done = False
@@ -32,6 +36,10 @@ class SudokuEnv:
         if self.is_solved():
             reward = 10
             done = True
+
+        if self.steps >= self.max_steps:
+            done = True
+            reward = -5
 
         return self.get_state(), reward, done, {}
 
