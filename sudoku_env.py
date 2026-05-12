@@ -78,6 +78,17 @@ class SudokuEnv:
             return True
         return False
 
+    def get_valid_actions(self):
+        actions = []
+
+        empty_cells = self.get_empty_cell()
+        for r, c in empty_cells:
+            for v in range(1, 10):
+                if self.is_valid(r, c, v):
+                    actions.append((r, c, v))
+
+        return actions
+
     def is_solved(self):
         for r in range(9):
             for c in range(9):
