@@ -50,16 +50,17 @@ class SudokuEnv:
         return empty
 
     def is_solved(self):
-        for r in range(9):
-            for c in range(9):
-                val = self.board[r][c]
-                if val == 0:
+        target = set(range(1, 10))
+        for i in range(9):
+            if set(self.board[i]) != target:
+                return False
+            if set(self.board[r][i] for r in range(9)) != target:
+                return False
+        for br in range(3):
+            for bc in range(3):
+                box = {self.board[br * 3 + r][bc * 3 + c] for r in range(3) for c in range(3)}
+                if box != target:
                     return False
-                self.board[r][c] = 0
-                if not self.is_valid(r, c, val):
-                    self.board[r][c] = val
-                    return False
-                self.board[r][c] = val
         return True
 
     def get_valid_actions(self):
