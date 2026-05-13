@@ -1,10 +1,16 @@
 # sudoku_env
+import numpy as np
+
 class SudokuEnv:
     def __init__(self, board):
+        self.size = len(board)
+        self.box_size = int(self.size ** 0.5)
+
         self.initial_board = [row[:] for row in board]
         self.board = [row[:] for row in board]
         self.steps = 0
-        self.max_steps = 200
+        empty_count = sum(1 for row in board for cell in row if cell == 0)
+        self.max_steps = empty_count * 2
 
     def reset(self):
         self.board = [row[:] for row in self.initial_board]
@@ -12,7 +18,7 @@ class SudokuEnv:
         return self.get_state()
 
     def get_state(self):
-        return self.board
+        return [row[:] for row in self.board]
 
     def is_valid(self, row, col, value):
         # Check the row
@@ -95,8 +101,7 @@ class SudokuEnv:
         if self.is_solved():
             reward = 10
             done = True
-
-        if self.steps >= self.max_steps:
+        elif self.steps >= self.max_steps:
             done = True
             reward = -5
 
