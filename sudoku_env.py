@@ -61,7 +61,7 @@ class SudokuEnv:
         for i in range(self.size):
             if set(self.board[i]) != target:
                 return False
-            if set(self.board[r][i] for r in range(9)) != target:
+            if set(self.board[r][i] for r in range(self.size)) != target:
                 return False
         for br in range(self.box_size):
             for bc in range(self.box_size):
@@ -107,7 +107,7 @@ class SudokuEnv:
         return self.get_state(), reward, done, {}
 
     def print_board(self):
-        for r in range(9):
+        for r in range(self.size):
             if r % self.box_size == 0:
                 print("+".join(["-" * (self.box_size * 2 + 1)] * self.box_size))
             row_str = " "
