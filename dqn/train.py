@@ -1,14 +1,14 @@
 # train.py
-from sudoku_env import SudokuEnv
-from dqn_agent import DQNAgent
-from sudoku_generator import generate_sudoku, create_sudoku
+from env.sudoku_env import SudokuEnv
+from env.sudoku_generator import generate_sudoku, create_sudoku
+from dqn.dqn_agent import DQNAgent
 
 def train():
     agent = DQNAgent(input_size=9*9, output_size=9*9*9)
 
     for episode in range(1000):
         full_board = generate_sudoku(size=9)
-        puzzle = create_sudoku(full_board, empty_cells=10, size=9)
+        puzzle = create_sudoku(full_board, empty_cells=20, size=9)
         env = SudokuEnv(puzzle)
         state = env.reset()
         episode_losses = []

@@ -1,6 +1,4 @@
-import pytest
-from sudoku_env import SudokuEnv
-from sudoku_generator import generate_sudoku, create_sudoku
+from env.sudoku_generator import generate_sudoku, create_sudoku
 
 def test_generate_sudoku_produces_valid_solution():
     board = generate_sudoku()

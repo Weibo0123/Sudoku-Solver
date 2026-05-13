@@ -1,5 +1,4 @@
-import pytest
-from sudoku_env import SudokuEnv
+from env.sudoku_env import SudokuEnv
 
 # Sample boards
 empty_board = [[0]*9 for _ in range(9)]

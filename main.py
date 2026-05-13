@@ -1,6 +1,6 @@
 # main.py
-from sudoku_env import SudokuEnv
-from sudoku_generator import generate_sudoku, create_sudoku
+from env.sudoku_env import SudokuEnv
+from env.sudoku_generator import generate_sudoku, create_sudoku
 
 def main():
     # Get the difficulty from user input

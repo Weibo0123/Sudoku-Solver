@@ -1,6 +1,6 @@
 #sudoku_generator
 import random
-from sudoku_env import SudokuEnv
+from env.sudoku_env import SudokuEnv
 
 def generate_sudoku(board=None, size=9):
     if board is None:

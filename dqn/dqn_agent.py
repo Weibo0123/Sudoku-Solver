@@ -1,7 +1,7 @@
 # dqn_agent.py
 import torch.nn as nn
-from q_network import QNetwork
-from experience_replay import ReplayBuffer
+from dqn.q_network import QNetwork
+from dqn.experience_replay import ReplayBuffer
 import random
 import torch
 import copy
