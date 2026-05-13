@@ -25,3 +25,6 @@ class DQNAgent:
             best_index = min(best_index, len(valid_actions) - 1)
             return valid_actions[best_index]
 
+    def store(self, state, action, reward, next_state, done):
+        self.replay_buffer.push(state, action, reward, next_state, done)
+
