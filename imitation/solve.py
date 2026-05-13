@@ -17,3 +17,31 @@ def is_valid(board, row, col, value):
                 return False
     return True
 
+
+def solve_and_record(board):
+    if board is None:
+        return
+
+    steps = []
+
+    def backtrack():
+        size = len(board)
+        empty = [(r, c) for r in range(size) for c in range(size) if board[r][c] == 0]
+        if not empty:
+            return True
+
+        row, col = empty[0]
+
+        for num in range(1, 10):
+            if is_valid(board, row, col, num):
+                board[row][col] = num
+                steps.append(([r[:] for r in board], (row, col, num)))
+                if backtrack():
+                    return True
+                board[row][col] = 0
+
+        return False
+
+    backtrack()
+    return steps
+
