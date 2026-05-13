@@ -50,22 +50,22 @@ class SudokuEnv:
 
     def get_empty_cell(self):
         empty = []
-        for r in range(9):
-            for c in range(9):
+        for r in range(self.size):
+            for c in range(self.size):
                 if self.board[r][c] == 0:
                     empty.append((r, c))
         return empty
 
     def is_solved(self):
-        target = set(range(1, 10))
-        for i in range(9):
+        target = set(range(1, self.size + 1))
+        for i in range(self.size):
             if set(self.board[i]) != target:
                 return False
             if set(self.board[r][i] for r in range(9)) != target:
                 return False
-        for br in range(3):
-            for bc in range(3):
-                box = {self.board[br * 3 + r][bc * 3 + c] for r in range(3) for c in range(3)}
+        for br in range(self.box_size):
+            for bc in range(self.box_size):
+                box = {self.board[br * self.box_size + r][bc * self.box_size + c] for r in range(self.box_size) for c in range(self.box_size)}
                 if box != target:
                     return False
         return True
@@ -75,16 +75,14 @@ class SudokuEnv:
 
         empty_cells = self.get_empty_cell()
         for r, c in empty_cells:
-            for v in range(1, 10):
+            for v in range(1, self.size + 1):
                 if self.is_valid(r, c, v):
                     actions.append((r, c, v))
-
         return actions
 
     def step(self, action):
         row, col, value = action
         self.steps += 1
-
         reward = 0
         done = False
 
@@ -110,15 +108,17 @@ class SudokuEnv:
 
     def print_board(self):
         for r in range(9):
-            if r % 3 == 0:
-                print("+-------+-------+-------+")
-            row_str = "| "
-            for c in range(9):
+            if r % self.box_size == 0:
+                print("+".join(["-" * (self.box_size * 2 + 1)] * self.box_size))
+            row_str = " "
+            for c in range(self.size):
+                if c % self.box_size == 0:
+                    row_str += "| "
                 val = self.board[r][c] if self.board[r][c] != 0 else "."
                 row_str += str(val) + " "
-                if (c + 1) % 3 == 0:
-                    row_str += "| "
+            row_str += "|"
             print(row_str)
-        print("+-------+-------+-------+")
+        print("+".join(["-" * (self.box_size * 2 + 1)] * self.box_size))
+
 
 
