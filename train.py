@@ -4,11 +4,11 @@ from dqn_agent import DQNAgent
 from sudoku_generator import generate_sudoku, create_sudoku
 
 def train():
-    agent = DQNAgent(input_size=4*4, output_size=4*4*4)
+    agent = DQNAgent(input_size=9*9, output_size=9*9*9)
 
-    for episode in range(100):
-        full_board = generate_sudoku(size=4)
-        puzzle = create_sudoku(full_board, empty_cells=5, size=4)
+    for episode in range(1000):
+        full_board = generate_sudoku(size=9)
+        puzzle = create_sudoku(full_board, empty_cells=10, size=9)
         env = SudokuEnv(puzzle)
         state = env.reset()
         episode_losses = []
@@ -27,6 +27,8 @@ def train():
                 episode_losses.append(loss)
 
             state = next_state
+            if env.is_solved():
+                print(f"Episode {episode}: SOLVED!")
 
         if episode_losses:
             avg_loss = sum(episode_losses) / len(episode_losses)

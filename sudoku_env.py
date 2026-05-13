@@ -86,22 +86,22 @@ class SudokuEnv:
         done = False
 
         if self.board[row][col] != 0:
-            reward = -1
+            reward = -0.1
             return self.get_state(), reward, done, {}
 
         if not self.is_valid(row, col, value):
-            reward = -1
+            reward = -0.1
             return self.get_state(), reward, done, {}
 
         self.board[row][col] = value
-        reward = 0.1
+        reward = 0.01
 
         if self.is_solved():
-            reward = 10
+            reward = 1
             done = True
         elif self.steps >= self.max_steps:
             done = True
-            reward = -5
+            reward = -0.5
 
         return self.get_state(), reward, done, {}
 

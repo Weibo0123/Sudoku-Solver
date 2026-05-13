@@ -4,6 +4,7 @@ from q_network import QNetwork
 from experience_replay import ReplayBuffer
 import random
 import torch
+import copy
 
 class DQNAgent:
     def __init__(self, input_size, output_size):
@@ -12,10 +13,13 @@ class DQNAgent:
         self.size = int(input_size ** 0.5)
         self.q_network = QNetwork(input_size, output_size)
         self.replay_buffer = ReplayBuffer(capacity=10000)
-        self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=0.001)
+        self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=0.0001)
         self.epsilon = 1.0
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
+        self.epsilon_decay = 0.999
+        self.target_network = copy.deepcopy(self.q_network)
+        self.target_update_freq = 10
+        self.train_steps = 0
 
     def select_action(self, state, valid_actions):
         if not valid_actions:
@@ -26,9 +30,10 @@ class DQNAgent:
         else:
             state_tensor = torch.FloatTensor(state).flatten().unsqueeze(0)
             q_values = self.q_network(state_tensor)
-            best_index = q_values.squeeze().argmax().item()
-            best_index = min(best_index, len(valid_actions) - 1)
-            return valid_actions[best_index]
+            valid_indices = [r * self.size * self.size + c * self.size + (v - 1) for r, c, v in valid_actions]
+            valid_q = q_values.squeeze()[valid_indices]
+            best_local = valid_q.argmax().item()
+            return valid_actions[best_local]
 
     def store(self, state, action, reward, next_state, done):
         self.replay_buffer.push(state, action, reward, next_state, done)
@@ -49,8 +54,12 @@ class DQNAgent:
         current_q_all = self.q_network(states)
         current_q = current_q_all.gather(1, action_indices.unsqueeze(1)).squeeze(1)
         with torch.no_grad():
-            next_q = self.q_network(next_states)
+            next_q = self.target_network(next_states)
+            next_q = torch.clamp(next_q, -1, 1)
             target_q = rewards + 0.99 * next_q.max(dim=1).values * (1 - dones)
+        self.train_steps += 1
+        if self.train_steps % self.target_update_freq == 0:
+            self.target_network.load_state_dict(self.q_network.state_dict())
         loss = nn.MSELoss()(current_q, target_q)
         self.optimizer.zero_grad()
         loss.backward()
