@@ -13,3 +13,6 @@ class QNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(128, output_size)
         )
+
+    def forward(self, x):
+        return self.network(x)
