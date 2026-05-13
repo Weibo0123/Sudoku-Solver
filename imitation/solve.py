@@ -20,7 +20,7 @@ def is_valid(board, row, col, value):
 
 def solve_and_record(board):
     if board is None:
-        return
+        return None
 
     steps = []
 
