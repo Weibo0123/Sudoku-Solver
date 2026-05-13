@@ -1,6 +1,4 @@
 # q_network.py
-
-import torch
 import torch.nn as nn
 
 class QNetwork(nn.Module):

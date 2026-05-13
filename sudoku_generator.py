@@ -1,5 +1,4 @@
 #sudoku_generator
-
 import random
 from sudoku_env import SudokuEnv
 

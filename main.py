@@ -1,5 +1,4 @@
 # main.py
-
 from sudoku_env import SudokuEnv
 from sudoku_generator import generate_sudoku, create_sudoku
 

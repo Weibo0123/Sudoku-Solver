@@ -1,5 +1,4 @@
 # sudoku_env
-import numpy as np
 
 class SudokuEnv:
     def __init__(self, board):
