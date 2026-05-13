@@ -6,6 +6,8 @@ class SudokuEnv:
         self.size = len(board)
         self.box_size = int(self.size ** 0.5)
 
+        assert self.box_size ** 2 == self.size
+
         self.initial_board = [row[:] for row in board]
         self.board = [row[:] for row in board]
         self.steps = 0
@@ -22,21 +24,20 @@ class SudokuEnv:
 
     def is_valid(self, row, col, value):
         # Check the row
-        if any(self.board[row][c] == value for c in range(9)):
+        if any(self.board[row][c] == value for c in range(self.size)):
             return False
 
         # Check the column
-        if any(self.board[r][col] == value for r in range(9)):
+        if any(self.board[r][col] == value for r in range(self.size)):
             return False
 
         # Check 3×3 box
-        start_row = row // 3 * 3
-        start_col = col // 3 * 3
-        for i in range(start_row, start_row + 3):
-            for j in range(start_col, start_col + 3):
+        start_row = row // self.box_size * self.box_size
+        start_col = col // self.box_size * self.box_size
+        for i in range(start_row, start_row + self.box_size):
+            for j in range(start_col, start_col + self.box_size):
                 if self.board[i][j] == value:
                     return False
-
         return True
 
     def apply_action(self, action):
