@@ -34,7 +34,7 @@ class DQNAgent:
         self.replay_buffer.push(state, action, reward, next_state, done)
 
     def train(self):
-        if len(self.replay_buffer) < 1000:
+        if len(self.replay_buffer) < 64:
             return None
         minibatch = self.replay_buffer.sample(64)
         states, actions, rewards, next_states, dones = zip(*minibatch)
@@ -54,6 +54,7 @@ class DQNAgent:
         loss = nn.MSELoss()(current_q, target_q)
         self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.q_network.parameters(), 1.0)
         self.optimizer.step()
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
