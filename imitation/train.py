@@ -3,12 +3,7 @@ from imitation.dataset import generate_dataset
 from imitation.model import ImitationModel
 import torch
 import torch.nn as nn
-from env.sudoku_generator import generate_sudoku, create_sudoku
-from env.sudoku_env import SudokuEnv
-import random
-from env.sudoku_generator import generate_sudoku, create_sudoku
-from env.sudoku_env import SudokuEnv
-import random
+from torch.utils.data import TensorDataset, DataLoader
 
 
 def train():
@@ -19,17 +14,26 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_fn = nn.CrossEntropyLoss()
 
+    dataset = TensorDataset(X_tensor, y_tensor)
+    dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
+
     for epoch in range(500):
-        optimizer.zero_grad()
-        output = model(X_tensor)
-        loss = loss_fn(output, y_tensor)
-        loss.backward()
-        optimizer.step()
+        epoch_loss = 0
+        for X_batch, y_batch in dataloader:
+            optimizer.zero_grad()
+            output = model(X_batch)
+            loss = loss_fn(output, y_batch)
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+
         if epoch % 10 == 0:
-            predicted = output.argmax(dim=1)
+            avg_loss = epoch_loss / len(dataloader)
+            output_all = model(X_tensor)
+            predicted = output_all.argmax(dim=1)
             correct = sum(1 for p, t in zip(predicted.tolist(), y_tensor.tolist()) if p == t)
             accuracy = correct / len(y_tensor)
-            print(f"Epoch {epoch}, Loss: {loss.item():.4f}, Accuracy: {accuracy:.2%}")
+            print(f"Epoch {epoch}, Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2%}")
 
 if __name__ == '__main__':
     train()
