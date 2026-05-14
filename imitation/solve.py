@@ -42,6 +42,13 @@ def solve_and_record(board):
 
         return False
 
-    backtrack()
-    return steps
+
+    success = backtrack()
+    if not success:
+        return None
+
+    final_steps = {}
+    for board_state, (row, col, num) in steps:
+        final_steps[(row, col)] = (board_state, (row, col, num))
+    return list(final_steps.values())
 

@@ -39,7 +39,7 @@ def train():
             print(f"Epoch {epoch}, Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2%}")
 
     full_board = generate_sudoku(size=9)
-    puzzle = create_sudoku(full_board, empty_cells=20, size=9)
+    puzzle = create_sudoku(full_board, empty_cells=40, size=9)
     env = SudokuEnv(puzzle)
     state = env.reset()
 
@@ -48,7 +48,7 @@ def train():
 
     for _ in range(num_tests):
         full_board = generate_sudoku(size=9)
-        puzzle = create_sudoku(full_board, empty_cells=20, size=9)
+        puzzle = create_sudoku(full_board, empty_cells=40, size=9)
         env = SudokuEnv(puzzle)
         state = env.reset()
 
@@ -56,7 +56,7 @@ def train():
             valid_actions = env.get_valid_actions()
             if not valid_actions:
                 break
-            x = torch.FloatTensor([cell for row in state for cell in row]).unsqueeze(0) / 9.0
+            x = torch.FloatTensor([cell / 9.0 for row in state for cell in row]).unsqueeze(0)
             predicted_num = model(x).argmax(dim=1).item() + 1
             action = next((a for a in valid_actions if a[2] == predicted_num), random.choice(valid_actions))
             state, reward, done, _ = env.step(action)
