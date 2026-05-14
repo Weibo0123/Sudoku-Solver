@@ -4,6 +4,9 @@ from imitation.model import ImitationModel
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
+from env.sudoku_generator import generate_sudoku, create_sudoku
+from env.sudoku_env import SudokuEnv
+import random
 
 
 def train():
@@ -34,6 +37,36 @@ def train():
             correct = sum(1 for p, t in zip(predicted.tolist(), y_tensor.tolist()) if p == t)
             accuracy = correct / len(y_tensor)
             print(f"Epoch {epoch}, Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2%}")
+
+    full_board = generate_sudoku(size=9)
+    puzzle = create_sudoku(full_board, empty_cells=20, size=9)
+    env = SudokuEnv(puzzle)
+    state = env.reset()
+
+    solved = 0
+    num_tests = 100
+
+    for _ in range(num_tests):
+        full_board = generate_sudoku(size=9)
+        puzzle = create_sudoku(full_board, empty_cells=20, size=9)
+        env = SudokuEnv(puzzle)
+        state = env.reset()
+
+        for _ in range(100):
+            valid_actions = env.get_valid_actions()
+            if not valid_actions:
+                break
+            x = torch.FloatTensor([cell for row in state for cell in row]).unsqueeze(0) / 9.0
+            predicted_num = model(x).argmax(dim=1).item() + 1
+            action = next((a for a in valid_actions if a[2] == predicted_num), random.choice(valid_actions))
+            state, reward, done, _ = env.step(action)
+            if done:
+                break
+
+        if env.is_solved():
+            solved += 1
+
+    print(f"Success Rate: {solved}/{num_tests} ({solved / num_tests:.2%})")
 
 if __name__ == '__main__':
     train()
