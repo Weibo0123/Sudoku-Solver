@@ -15,6 +15,7 @@ def generate_dataset(num_puzzles=1000, size=9, empty_cells=40):
 
         for board_state, (row, col, num) in steps:
             X.append([cell / 9.0 for r in board_state for cell in r])
-            y.append(num - 1)
+            cell_index = row * 9 + col
+            y.append(cell_index * 9 + (num - 1))
 
     return X, y

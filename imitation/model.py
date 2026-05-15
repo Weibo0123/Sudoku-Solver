@@ -7,9 +7,11 @@ class ImitationModel(nn.Module):
         self.network = nn.Sequential(
             nn.Linear(input_size, 512),
             nn.ReLU(),
+            nn.Dropout(0.3),
             nn.Linear(512, 256),
             nn.ReLU(),
             nn.Linear(256, 128),
+            nn.Dropout(0.3),
             nn.ReLU(),
             nn.Linear(128, output_size)
         )
