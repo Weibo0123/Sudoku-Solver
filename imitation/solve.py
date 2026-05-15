@@ -34,8 +34,9 @@ def solve_and_record(board):
 
         for num in range(1, 10):
             if is_valid(board, row, col, num):
+                snapshot = [r[:] for r in board]
                 board[row][col] = num
-                steps.append(([r[:] for r in board], (row, col, num)))
+                steps.append((snapshot, (row, col, num)))
                 if backtrack():
                     return True
                 board[row][col] = 0
