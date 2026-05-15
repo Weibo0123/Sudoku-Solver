@@ -25,13 +25,11 @@ def solve_and_record(board):
     steps = []
 
     def backtrack():
-        size = len(board)
-        empty = [(r, c) for r in range(size) for c in range(size) if board[r][c] == 0]
+        empty = [(r, c) for r in range(9) for c in range(9) if board[r][c] == 0]
         if not empty:
             return True
 
         row, col = empty[0]
-
         for num in range(1, 10):
             if is_valid(board, row, col, num):
                 snapshot = [r[:] for r in board]
@@ -40,16 +38,8 @@ def solve_and_record(board):
                 if backtrack():
                     return True
                 board[row][col] = 0
-
         return False
 
-
-    success = backtrack()
-    if not success:
+    if not backtrack():
         return None
-
-    final_steps = {}
-    for board_state, (row, col, num) in steps:
-        final_steps[(row, col)] = (board_state, (row, col, num))
-    return list(final_steps.values())
-
+    return steps

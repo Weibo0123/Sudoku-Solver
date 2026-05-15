@@ -3,8 +3,7 @@ from env.sudoku_generator import generate_sudoku, create_sudoku
 from imitation.solve import solve_and_record
 
 def generate_dataset(num_puzzles=1000, size=9, empty_cells=40):
-    X = []
-    y = []
+    X, y_cell, y_num = [], [], []
 
     for _ in range(num_puzzles):
         board = generate_sudoku(size=size)
@@ -15,7 +14,7 @@ def generate_dataset(num_puzzles=1000, size=9, empty_cells=40):
 
         for board_state, (row, col, num) in steps:
             X.append([cell / 9.0 for r in board_state for cell in r])
-            cell_index = row * 9 + col
-            y.append(cell_index * 9 + (num - 1))
+            y_cell.append(row * 9 + col)
+            y_num.append(num - 1)
 
-    return X, y
+    return X, y_cell, y_num
