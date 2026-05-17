@@ -99,7 +99,9 @@ def train():
             if done:
                 break
 
-
+        if test_idx < 3:
+            print(
+                f"第{test_idx}局: 步数={step_count}, valid_actions剩余={len(env.get_valid_actions())}, solved={env.is_solved()}")
 
         if env.is_solved():
             solved += 1

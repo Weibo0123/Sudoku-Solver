@@ -13,6 +13,8 @@ class SudokuEnv:
         empty_count = sum(1 for row in board for cell in row if cell == 0)
         self.max_steps = empty_count * 2
 
+        self.history = []
+
     def reset(self):
         self.board = [row[:] for row in self.initial_board]
         self.steps = 0
@@ -78,6 +80,18 @@ class SudokuEnv:
                 if self.is_valid(r, c, v):
                     actions.append((r, c, v))
         return actions
+
+    def push(self, action):
+        row, col, value = action
+        self.history.append((row, col, self.board[row][col]))  # 记录原来的值
+
+    def undo(self):
+        if not self.history:
+            return False
+        row, col, original = self.history.pop()
+        self.board[row][col] = original
+        self.steps -= 1
+        return True
 
     def step(self, action):
         row, col, value = action
