@@ -63,7 +63,10 @@ def train():
         for _ in range(200):
             valid_actions = env.get_valid_actions()
             if not valid_actions:
-                break
+                if not env.undo():
+                    break
+                state = env.get_state()
+                continue
 
             x = torch.FloatTensor([cell / 9.0 for row in state for cell in row]).unsqueeze(0)
 
