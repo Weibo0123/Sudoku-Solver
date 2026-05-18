@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
+import os
 
 from imitation.dataset import generate_dataset
 from imitation.model import ImitationModel
@@ -49,7 +50,7 @@ def solve_with_mrv(env, model):
 
 
 def train():
-    X, y_cell, y_num = generate_dataset(num_puzzles=300, size=9)
+    X, y_cell, y_num = generate_dataset(num_puzzles=500, size=9)
     X_tensor = torch.FloatTensor(X)
     y_cell_tensor = torch.LongTensor(y_cell)
     y_num_tensor  = torch.LongTensor(y_num)
@@ -98,7 +99,8 @@ def train():
             solved += 1
 
     print(f"\nSuccess Rate: {solved}/{num_tests} ({solved / num_tests:.2%})")
-
+    os.makedirs('checkpoints', exist_ok=True)
+    torch.save(model.state_dict(), 'checkpoints/sudoku_model.pth')
 
 if __name__ == '__main__':
     train()
