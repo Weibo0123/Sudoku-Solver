@@ -1,87 +1,48 @@
-# main.py
+import time
+import os
+import torch
 from env.sudoku_env import SudokuEnv
 from env.sudoku_generator import generate_sudoku, create_sudoku
+from imitation.model import ImitationModel
+from imitation.train import solve_with_mrv
 
-def main():
-    # Get the difficulty from user input
-    empty_cells = print_menu()
+def print_board(state):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("+" + "---------+" * 3)
+    for i, row in enumerate(state):
+        line = "|"
+        for j, val in enumerate(row):
+            cell = str(val) if val != 0 else "."
+            line += f" {cell} "
+            if (j + 1) % 3 == 0:
+                line += "|"
+        print(line)
+        if (i + 1) % 3 == 0:
+            print("+" + "---------+" * 3)
 
-    # Generate a full Sudoku board
-    full_board = generate_sudoku()
+def demo():
+    model = ImitationModel()
+    model.load_state_dict(torch.load('checkpoints/sudoku_model.pth'))
+    model.eval()
 
-    # Create a puzzle with the specified number of empty cells
-    puzzle = create_sudoku(full_board, empty_cells=empty_cells)
-
-    # Initialize the environment and print the puzzle
+    full_board = generate_sudoku(size=9)
+    puzzle = create_sudoku(full_board, empty_cells=40, size=9)
     env = SudokuEnv(puzzle)
-    print(f"\nSudoku Puzzle ({empty_cells} empty cells):")
+    env.reset()
 
-    play_sudoku(env)
+    print_board(env.get_state())
+    time.sleep(1)
 
+    original_step = env.step
+    def step_with_display(action):
+        result = original_step(action)
+        print_board(env.get_state())
+        time.sleep(1)
+        return result
+    env.step = step_with_display
 
-def print_menu():
-    # Prompt the player to choose difficulty
-    print("Select Sudoku difficulty:")
-    print("1. Easy")
-    print("2. Medium")
-    print("3. Hard")
-    print("4. Expert")
-
-    # Get player input
-    choice = input("Enter difficulty number (1-4): ").strip()
-
-    # Map choice to number of empty cells
-    difficulty_map = {
-        "1": 40,  # Easy
-        "2": 50,  # Medium
-        "3": 60,  # Hard
-        "4": 70   # Expert
-    }
-
-    empty_cells = difficulty_map.get(choice, 40)  # Default to Easy
-    return empty_cells
-
-def play_sudoku(env):
-    """
-    Interactive loop to let the player fill the Sudoku board.
-    Player inputs: row, column, number.
-    Type 'q' to quit.
-    """
-    while True:
-        print("\nCurrent board:")
-        env.print_board()
-
-        user_input = input("Enter your move as row,col,num (or 'q' to quit): ").strip()
-        if user_input.lower() == 'q':
-            print("Exiting game.")
-            break
-
-        try:
-            row, col, num = map(int, user_input.split(','))
-            # Convert 1-based input to 0-based index
-            row -= 1
-            col -= 1
-
-            if env.board[row][col] != 0:
-                print("Cell is already filled. Try another cell.")
-                continue
-
-            if env.is_valid(row, col, num):
-                env.board[row][col] = num
-                print(f"Placed {num} at ({row+1}, {col+1})")
-            else:
-                print(f"{num} cannot be placed at ({row+1}, {col+1}). Invalid move.")
-
-            # Check if the puzzle is completed
-            if all(all(cell != 0 for cell in row_cells) for row_cells in env.board):
-                print("\nCongratulations! You have completed the Sudoku puzzle!")
-                env.print_board()
-                break
-
-        except ValueError:
-            print("Invalid input format. Use row,col,num (e.g., 0,1,5)")
-        except IndexError:
-            print("Row and column must be between 0 and 8.")
+    solved = solve_with_mrv(env, model)
+    print("Solved!" if solved else "Failed.")
 
 if __name__ == '__main__':
-    main()
+    demo()

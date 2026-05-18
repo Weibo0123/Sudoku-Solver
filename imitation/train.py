@@ -99,8 +99,8 @@ def train():
             solved += 1
 
     print(f"\nSuccess Rate: {solved}/{num_tests} ({solved / num_tests:.2%})")
-    os.makedirs('checkpoints', exist_ok=True)
-    torch.save(model.state_dict(), 'checkpoints/sudoku_model.pth')
+    os.makedirs('../checkpoints', exist_ok=True)
+    torch.save(model.state_dict(), '../checkpoints/sudoku_model.pth')
 
 if __name__ == '__main__':
     train()
