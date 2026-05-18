@@ -11,13 +11,14 @@ class SudokuEnv:
         self.board = [row[:] for row in board]
         self.steps = 0
         empty_count = sum(1 for row in board for cell in row if cell == 0)
-        self.max_steps = empty_count * 2
+        self.max_steps = empty_count * 20
 
         self.history = []
 
     def reset(self):
         self.board = [row[:] for row in self.initial_board]
         self.steps = 0
+        self.history = []
         return self.get_state()
 
     def get_state(self):
@@ -107,6 +108,7 @@ class SudokuEnv:
             reward = -0.1
             return self.get_state(), reward, done, {}
 
+        self.history.append((row, col, 0))
         self.board[row][col] = value
         reward = 0.01
 
