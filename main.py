@@ -4,7 +4,7 @@ import torch
 from env.sudoku_env import SudokuEnv
 from env.sudoku_generator import generate_sudoku, create_sudoku
 from imitation.model import ImitationModel
-from imitation.train import solve_with_mrv
+from imitation.train import solve_with_mrv, train
 
 def print_board(state):
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -21,6 +21,11 @@ def print_board(state):
             print("+" + "---------+" * 3)
 
 def demo():
+    if not os.path.exists('checkpoints/sudoku_model.pth'):
+        print("No weighting file found")
+        print("Start training...")
+        train()
+        print("Training complete")
     model = ImitationModel()
     model.load_state_dict(torch.load('checkpoints/sudoku_model.pth'))
     model.eval()
