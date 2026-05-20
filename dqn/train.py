@@ -8,8 +8,8 @@ def train():
 
     for episode in range(1000):
         full_board = generate_sudoku(size=9)
-        puzzle = create_sudoku(full_board, empty_cells=20, size=9)
-        env = SudokuEnv(puzzle)
+        puzzle, solution = create_sudoku(full_board, empty_cells=20, size=9)
+        env = SudokuEnv(puzzle, solution)
         state = env.reset()
         episode_losses = []
         done = False
