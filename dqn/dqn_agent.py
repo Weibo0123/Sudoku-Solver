@@ -52,12 +52,12 @@ class DQNAgent:
             return None
         minibatch = self.replay_buffer.sample(64)
         states, actions, rewards, next_states, dones = zip(*minibatch)
-        states = torch.FloatTensor(states).reshape(-1, self.input_size)
+        states = torch.stack([self.state_to_tenser(s) for s in states])
         rewards = torch.FloatTensor(rewards)
-        next_states = torch.FloatTensor(next_states).reshape(-1, self.input_size)
+        next_states = torch.stack([self.state_to_tenser(s) for s in next_states])
         dones = torch.FloatTensor(dones)
         action_indices = torch.LongTensor([
-            r * self.size * self.size + c * self.size + (v - 1)
+            r * self.board_size * self.board_size + c * self.board_size + (v - 1)
             for r, c, v in actions
         ])
         current_q_all = self.q_network(states)

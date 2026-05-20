@@ -4,7 +4,7 @@ from env.sudoku_generator import generate_sudoku, create_sudoku
 from dqn.dqn_agent import DQNAgent
 
 def train():
-    agent = DQNAgent(input_size=9*9, output_size=9*9*9)
+    agent = DQNAgent(board_size=9, output_size=9*9*9)
 
     for episode in range(1000):
         full_board = generate_sudoku(size=9)

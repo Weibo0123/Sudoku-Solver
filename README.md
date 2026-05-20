@@ -4,7 +4,6 @@ An AI-powered Sudoku solver experimenting with different machine learning method
 
 
 ## Imitation Learning
-Release
 
 You can download the latest executable release here:
 
