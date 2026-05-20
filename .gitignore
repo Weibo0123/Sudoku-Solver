@@ -2,3 +2,7 @@
 .venv
 .idea
 checkpoints
+Sudoku Solver
+build
+dist
+*.spec

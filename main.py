@@ -5,7 +5,16 @@ from env.sudoku_env import SudokuEnv
 from env.sudoku_generator import generate_sudoku, create_sudoku
 from imitation.model import ImitationModel
 from imitation.train import solve_with_mrv, train
+import sys
 
+def resource_path(relative_path):
+    try:
+        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+        return os.path.join(base_path, relative_path)
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 def print_board(state):
     os.system('cls' if os.name == 'nt' else 'clear')
     print("+" + "---------+" * 3)
@@ -21,13 +30,14 @@ def print_board(state):
             print("+" + "---------+" * 3)
 
 def demo():
-    if not os.path.exists('checkpoints/sudoku_model.pth'):
+    model_path = resource_path('checkpoints/sudoku_model.pth')
+    if not os.path.exists(model_path):
         print("No weighting file found")
         print("Start training...")
         train()
         print("Training complete")
     model = ImitationModel()
-    model.load_state_dict(torch.load('checkpoints/sudoku_model.pth'))
+    model.load_state_dict(torch.load(str(model_path)))
     model.eval()
 
     full_board = generate_sudoku(size=9)
