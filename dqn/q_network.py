@@ -11,12 +11,16 @@ class QNetwork(nn.Module):
             nn.ReLU(),
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.ReLU(),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.ReLU()
         )
 
         self.fc = nn.Sequential(
-            nn.Linear(128 * (board_size ** 2), 256),
+            nn.Linear(256 * (board_size ** 2), 512),
             nn.ReLU(),
-            nn.Linear(256, output_size),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, output_size)
         )
 
     def forward(self, x):

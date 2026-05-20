@@ -4,9 +4,10 @@ from env.sudoku_generator import generate_sudoku, create_sudoku
 from dqn.dqn_agent import DQNAgent
 
 STAGES = [
-    {"size": 9, "empty_cells": 3,  "threshold": 0.8},
-    {"size": 9, "empty_cells": 6,  "threshold": 0.8},
-    {"size": 9, "empty_cells": 10, "threshold": 0.8},
+    {"size": 9, "empty_cells": 3,  "threshold": 0.95},
+    {"size": 9, "empty_cells": 6,  "threshold": 0.95},
+    {"size": 9, "empty_cells": 10, "threshold": 0.95},
+    {"size": 9, "empty_cells": 12, "threshold": 0.9},
     {"size": 9, "empty_cells": 15, "threshold": 0.8},
     {"size": 9, "empty_cells": 20, "threshold": 0.8},
     {"size": 9, "empty_cells": 40, "threshold": None},
@@ -58,7 +59,7 @@ def train():
             solved = 0
             if current_stage["threshold"] and success_rate >= current_stage["threshold"]:
                 stage += 1
-                agent.epsilon = max(agent.epsilon, 0.3)
+                agent.epsilon = max(agent.epsilon, 0.5)
                 print(f"Stage {stage + 1} threshold reached, epsilon: {agent.epsilon:.3f}")
 
 
