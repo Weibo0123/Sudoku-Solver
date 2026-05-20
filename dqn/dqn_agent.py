@@ -7,11 +7,10 @@ import torch
 import copy
 
 class DQNAgent:
-    def __init__(self, input_size, output_size):
-        self.input_size = input_size
+    def __init__(self, board_size, output_size):
+        self.board_size = board_size
         self.output_size = output_size
-        self.size = int(input_size ** 0.5)
-        self.q_network = QNetwork(input_size, output_size)
+        self.q_network = QNetwork(board_size, output_size)
         self.replay_buffer = ReplayBuffer(capacity=10000)
         self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=0.0001)
         self.epsilon = 1.0
@@ -28,12 +27,22 @@ class DQNAgent:
         if random.random() < self.epsilon:
             return random.choice(valid_actions)
         else:
-            state_tensor = torch.FloatTensor(state).flatten().unsqueeze(0)
+            state_tensor = self.state_to_tenser(state).unsqueeze(0)
             q_values = self.q_network(state_tensor)
-            valid_indices = [r * self.size * self.size + c * self.size + (v - 1) for r, c, v in valid_actions]
+            valid_indices = [r * self.board_size * self.board_size + c * self.board_size + (v - 1) for r, c, v in valid_actions]
             valid_q = q_values.squeeze()[valid_indices]
             best_local = valid_q.argmax().item()
             return valid_actions[best_local]
+
+    def state_to_tenser(self, state):
+        size = self.board_size
+        tensor = torch.zeros(size, size, size)
+        for r in range (size):
+            for c in range (size):
+                v = state[r][c]
+                if v > 0:
+                    tensor[r][c][v - 1] = 1
+        return tensor
 
     def store(self, state, action, reward, next_state, done):
         self.replay_buffer.push(state, action, reward, next_state, done)
