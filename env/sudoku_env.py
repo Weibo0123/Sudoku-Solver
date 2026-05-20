@@ -1,8 +1,9 @@
 # sudoku_env
 
 class SudokuEnv:
-    def __init__(self, board):
+    def __init__(self, board, solution=None):
         self.size = len(board)
+        self.solution = solution
         self.box_size = int(self.size ** 0.5)
 
         assert self.box_size ** 2 == self.size
@@ -110,14 +111,18 @@ class SudokuEnv:
 
         self.history.append((row, col, 0))
         self.board[row][col] = value
-        reward = 0.01
+        reward = 0.1
+
+        if value == self.solution[row][col]:
+            reward += 1.0
+        else:
+            reward -= 0.5
 
         if self.is_solved():
-            reward = 1
+            reward += 10.0
             done = True
         elif self.steps >= self.max_steps:
             done = True
-            reward = -0.5
 
         return self.get_state(), reward, done, {}
 

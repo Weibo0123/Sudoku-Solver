@@ -24,6 +24,7 @@ def generate_sudoku(board=None, size=9):
 
 def create_sudoku(full_board, empty_cells=40, size=9):
     puzzle = [row[:] for row in full_board]
+    solution = [row[:] for row in full_board]
     cell = [(r, c) for r in range(size) for c in range(size)]
     random.shuffle(cell)
 
@@ -31,5 +32,5 @@ def create_sudoku(full_board, empty_cells=40, size=9):
         r, c = cell[i]
         puzzle[r][c] = 0
 
-    return puzzle
+    return puzzle, solution
 
