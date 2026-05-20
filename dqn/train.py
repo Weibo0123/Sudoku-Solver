@@ -7,6 +7,7 @@ STAGES = [
     {"size": 9, "empty_cells": 3,  "threshold": 0.8},
     {"size": 9, "empty_cells": 6,  "threshold": 0.8},
     {"size": 9, "empty_cells": 10, "threshold": 0.8},
+    {"size": 9, "empty_cells": 15, "threshold": 0.8},
     {"size": 9, "empty_cells": 20, "threshold": 0.8},
     {"size": 9, "empty_cells": 40, "threshold": None},
 ]
