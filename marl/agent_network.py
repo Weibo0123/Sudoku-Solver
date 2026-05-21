@@ -56,3 +56,31 @@ class AgentTransformer(nn.Module):
         logits = logits.masked_fill(-action_mask, float("-inf"))
 
         return logits
+
+    def get_action_and_log_prob(
+            self,
+            cell_values: torch.Tensor,
+            position: torch.Tensor,
+            agent_type: torch.Tensor,
+            action_mask: torch.Tensor,
+    ):
+        logits = self.forward(cell_values, position, agent_type, action_mask)
+        dist = torch.distributions.Categorical(logits=logits)
+        action = dist.sample()
+        log_prob = dist.log_prob(action)
+        entropy = dist.entropy()
+        return action, log_prob, entropy
+
+    def evaluate_actions(
+            self,
+            cell_values: torch.Tensor,
+            position: torch.Tensor,
+            agent_type: torch.Tensor,
+            action_mask: torch.Tensor,
+            actions: torch.Tensor
+    ):
+        logits = self.forward(cell_values, position, agent_type, action_mask)
+        dist = torch.distributions.Categorical(logits=logits)
+        log_prob = dist.log_prob(actions)
+        entropy = dist.entropy()
+        return log_prob, entropy
