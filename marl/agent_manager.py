@@ -35,4 +35,25 @@ class AgentManager:
         self.correct_counts = [0] * 27
         self.total_counts   = [0] * 27
 
+    def _extract_row_input(self, board: list, row: int):
+        cell_value = [board[row][c] for c in range(9)]
+        position = list(range(9))
+        return cell_value, position
 
+    def _extract_col_input(self, board: list, col: int):
+        cell_value = [board[r][col] for r in range(9)]
+        position = list(range(9))
+        return cell_value, position
+
+    def _extract_box_input(self, board: list, box: int):
+        start_row = box // 3 * 3
+        start_col = box % 3 * 3
+        cell_value = []
+        position = []
+        pos = 0
+        for r in range(start_row, start_row + 3):
+            for c in range(start_col, start_col + 3):
+                cell_value.append(board[r][c])
+                position.append(pos)
+                pos += 1
+        return cell_value, position
