@@ -11,10 +11,10 @@ class DQNAgent:
         self.board_size = board_size
         self.output_size = output_size
         self.q_network = QNetwork(board_size, output_size)
-        self.replay_buffer = ReplayBuffer(capacity=10000)
+        self.replay_buffer = ReplayBuffer(capacity=50000)
         self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=0.0001)
         self.epsilon = 0.3
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.05
         self.epsilon_decay = 0.999
         self.target_network = copy.deepcopy(self.q_network)
         self.target_update_freq = 10
