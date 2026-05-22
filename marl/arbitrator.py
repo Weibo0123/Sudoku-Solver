@@ -25,3 +25,7 @@ class Arbitrator:
                 if board[r][c] == 0
             )
             self.remaining[18 + box] = count
+
+    def update_remaining(self, agent_idx: dict):
+        for idx in agent_idx.values():
+            self.remaining[idx] = max(0, self.remaining[idx] - 1)
