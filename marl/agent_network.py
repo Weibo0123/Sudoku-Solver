@@ -1,7 +1,6 @@
 # agent_network.py
 import torch
 import torch.nn as nn
-import math
 
 AGENT_ROW = 0
 AGENT_COL = 1

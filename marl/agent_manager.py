@@ -1,6 +1,5 @@
 # agent_manager.py
 import torch
-from torch import dtype
 
 from marl.agent_network import AgentTransformer, AGENT_ROW, AGENT_COL, AGENT_BOX
 from env.sudoku_env import SudokuEnv
