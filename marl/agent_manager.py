@@ -20,6 +20,13 @@ class AgentManager:
     def box_agent_idx(self, box: int) -> int:
         return 18 + box
 
+    def get_actor_inputs(self, board, target_row, target_col):
+        box = self.box_agent_idx(target_row)
+        row_cells, row_pos = self._extract_row_input(board, target_row)
+        col_cells, col_pos = self._extract_col_input(board, target_col)
+        box_cells, box_pos = self._extract_box_input(board, box)
+        return row_cells, row_pos, col_cells, col_pos, box_cells, box_pos
+
     def box_idx(self, row: int, col: int) -> int:
         return (row // 3) * 3 + (col // 3)
 
@@ -63,33 +70,34 @@ class AgentManager:
     def _get_action_mask(self, env, row: int, col: int) -> list:
         return [env.is_valid(row=row, col=col, value=digit) for digit in range(1, 10)]
 
-    def get_scores(self, env, board: list, target_row: int, target_col: int):
+    def get_logits_with_grad(self, env, board, target_row, target_col):
         box = self.box_idx(target_row, target_col)
-
         row_cells, row_pos = self._extract_row_input(board, target_row)
         col_cells, col_pos = self._extract_col_input(board, target_col)
         box_cells, box_pos = self._extract_box_input(board, box)
-
         action_mask = self._get_action_mask(env, target_row, target_col)
 
-        cell_value = torch.tensor(
+        cell_values_t = torch.tensor(
             [row_cells, col_cells, box_cells], dtype=torch.long
         ).to(self.device)
-
-        position = torch.tensor(
+        positions_t = torch.tensor(
             [row_pos, col_pos, box_pos], dtype=torch.long
         ).to(self.device)
-
-        agent_types = torch.tensor(
+        agent_types_t = torch.tensor(
             [AGENT_ROW, AGENT_COL, AGENT_BOX], dtype=torch.long
         ).to(self.device)
+        mask_t = torch.stack([
+                                 torch.tensor(action_mask, dtype=torch.bool)
+                             ] * 3).to(self.device)
 
-        mask = torch.tensor(
-            [action_mask, action_mask, action_mask], dtype=torch.bool
-        ).to(self.device)
+        logits = self.agent_network(cell_values_t, positions_t, agent_types_t, mask_t)
+        return logits, cell_values_t, positions_t, agent_types_t, mask_t
+
+    def get_scores(self, env, board: list, target_row: int, target_col: int):
+        action_mask = self._get_action_mask(env, target_row, target_col)
 
         with torch.no_grad():
-            logits = self.agent_network(cell_value, position, agent_types, mask)
+            logits, _, _, _, _ = self.get_logits_with_grad(env, board, target_row, target_col)
 
         scores = {
             "row": logits[0],
@@ -100,7 +108,7 @@ class AgentManager:
         agent_indices = {
             "row": self.row_agent_idx(target_row),
             "col": self.col_agent_idx(target_col),
-            "box": self.box_agent_idx(box),
+            "box": self.box_agent_idx(self.box_idx(target_row, target_col)),
         }
 
         return scores, agent_indices, torch.tensor(action_mask, dtype=torch.bool)
