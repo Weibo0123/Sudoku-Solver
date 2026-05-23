@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Categorical
-from marl.agent_network import AGENT_ROW, AGENT_COL, AGENT_BOX
 
 class PPOTrainer:
     def __init__(
@@ -31,12 +30,12 @@ class PPOTrainer:
         self.ppo_epoch = ppo_epoch
 
         self.optimizer = optim.Adam(
-            list(agent_manager.parameters()) + list(critic.parameterS()),
+            list(agent_manager.parameters()) + list(critic.parameters()),
             lr=lr
         )
 
-    def _select_cell_mrv(self, board, env):
-        empty_cells = env.get_empty_cells()
+    def _select_cell_mrv(self, env):
+        empty_cells = env.get_empty_cell()
         return min(
             empty_cells,
             key=lambda cell: sum(
@@ -45,7 +44,7 @@ class PPOTrainer:
         )
 
 
-    def collect_rollouts(self, env, solution):
+    def collect_rollouts(self, env, solution) -> dict:
         all_cell_values = []
         all_position = []
         all_agent_types = []
@@ -64,34 +63,34 @@ class PPOTrainer:
         while not done:
             board = env.get_state()
 
-            target_row, target_col = self._select_cell_mrv(board, env)
+            target_row, target_col = self._select_cell_mrv(env)
 
             board_flat = torch.tensor(
                 [cell for row in board for cell in row], dtype=torch.long
             ).unsqueeze(0).to(self.device)
             value = self.critic(board_flat).squeeze()
 
-            scores, agent_indices, action_mask = self.agent_manager.get_scores(
-                env, board, target_row, target_col
-            )
-
-            row_cells, row_pos, col_cells, col_pos, box_cells, box_pos, box = self.agent_manager.get_actor_inputs(board, target_row, target_col)
-
             logits, cell_values_t, positions_t, agent_types_t, mask_t = self.agent_manager.get_logits_with_grad(env, board, target_row, target_col)
 
+            action_mask = mask_t[0]
+            scores = {"row": logits[0].detach(), "col": logits[1].detach(), "box": logits[2].detach()}
+            agent_indices = {
+                "row": self.agent_manager.row_agent_idx(target_row),
+                "col": self.agent_manager.col_agent_idx(target_col),
+                "box": self.agent_manager.box_agent_idx(self.agent_manager.box_idx(target_row, target_col)),
+            }
+
             dist = Categorical(logits=logits)
-            actions = dist.sample()
-            log_probs = dist.log_prob(actions)
-
             digit = self.arbitrator.decide(scores, agent_indices, self.agent_manager, action_mask)
-
             digit_idx = digit - 1
+            digit_idx_t = torch.tensor([digit_idx] * 3, dtype=torch.long).to(self.device)
+            log_probs = dist.log_prob(digit_idx_t)
 
             state, reward, done, _ = env.step((target_row, target_col, digit))
 
             correct = (digit == solution[target_row][target_col])
             for key in ("row", "col", "box"):
-                self.agent_manager.reset_accuracy(agent_indices[key], correct)
+                self.agent_manager.update_accuracy(agent_indices[key], correct)
 
             self.arbitrator.update_remaining(agent_indices)
 
@@ -102,7 +101,7 @@ class PPOTrainer:
             all_actions.append(
                 torch.tensor([digit_idx] * 3, dtype=torch.long).to(self.device)
             )
-            all_log_probs.append(log_probs)
+            all_log_probs.append(log_probs.detach())
             all_rewards.append(reward)
             all_values.append(value.detach())
             all_boards.append(board_flat.squeeze(0))
@@ -110,15 +109,15 @@ class PPOTrainer:
         returns = self._compute_returns(all_rewards)
 
         return {
-            "cell_values": torch.cat(all_cell_values),
-            "positions": torch.cat(all_position),
-            "agent_types": torch.cat(all_agent_types),
-            "mask": torch.cat(all_mask),
-            "actions": torch.cat(all_actions),
-            "log_probs": torch.cat(all_log_probs),
-            "rewards": torch.cat(all_rewards),
-            "values": torch.cat(all_values),
-            "boards": torch.cat(all_boards),
+            "cell_values": torch.stack(all_cell_values),
+            "positions": torch.stack(all_position),
+            "agent_types": torch.stack(all_agent_types),
+            "mask": torch.stack(all_mask),
+            "actions": torch.stack(all_actions),
+            "log_probs": torch.stack(all_log_probs),
+            "returns": returns,
+            "values": torch.stack(all_values),
+            "boards": torch.stack(all_boards),
         }
 
 
@@ -130,3 +129,64 @@ class PPOTrainer:
             returns.insert(0, G)
         return torch.tensor(returns, dtype=torch.float32).to(self.device)
 
+    def update(self, rollout: dict):
+        cell_values = rollout["cell_values"]
+        positions = rollout["positions"]
+        agent_types = rollout["agent_types"]
+        masks = rollout["mask"]
+        actions = rollout["actions"]
+        old_log_probs = rollout["log_probs"]
+        returns = rollout["returns"]
+        boards = rollout["boards"]
+
+        T = cell_values.size(0)
+
+        cv_flat = cell_values.view(T * 3, 9)
+        pos_flat = positions.view(T * 3, 9)
+        at_flat = agent_types.view(T * 3)
+        mk_flat = masks.view(T * 3, 9)
+        ac_flat = actions.view(T * 3)
+        olp_flat = old_log_probs.view(T * 3)
+
+        clip_loss = 0
+        value_loss = 0
+        entropy_loss = 0
+
+        for _ in range(self.ppo_epoch):
+
+            new_log_probs, entropy = self.agent_manager.agent_network.evaluate_actions(
+                cv_flat, pos_flat, at_flat, mk_flat, ac_flat
+            )
+
+            new_values = self.critic(boards).squeeze()
+
+            advantages = returns - new_values.detach()
+            advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-5)
+
+            advantages_flat = advantages.repeat_interleave(3)
+
+            ratio = torch.exp(new_log_probs - olp_flat)
+            clip_loss = -torch.min(
+                ratio * advantages_flat,
+                torch.clamp(ratio, 1 - self.clip_param, 1 + self.clip_param) * advantages_flat,
+            ).mean()
+
+            value_loss = nn.functional.mse_loss(new_values, returns)
+
+            entropy_loss = -entropy.mean()
+
+            loss = clip_loss + self.value_loss_coef * value_loss + self.entropy_coef * entropy_loss
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(
+                list(self.agent_manager.parameters()) + list(self.critic.parameters()),
+                max_norm=0.5
+            )
+            self.optimizer.step()
+
+        return {
+            "policy_loss": clip_loss.item(),
+            "value_loss": value_loss.item(),
+            "entropy_loss": entropy_loss.item(),
+        }
