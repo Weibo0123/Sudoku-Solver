@@ -6,3 +6,4 @@ Sudoku Solver
 build
 dist
 *.spec
+marl/checkpoints

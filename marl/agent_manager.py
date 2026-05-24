@@ -21,7 +21,7 @@ class AgentManager:
         return 18 + box
 
     def get_actor_inputs(self, board, target_row, target_col):
-        box = self.box_agent_idx(target_row)
+        box = self.box_idx(target_row, target_col)
         row_cells, row_pos = self._extract_row_input(board, target_row)
         col_cells, col_pos = self._extract_col_input(board, target_col)
         box_cells, box_pos = self._extract_box_input(board, box)
@@ -71,6 +71,7 @@ class AgentManager:
         return [env.is_valid(row=row, col=col, value=digit) for digit in range(1, 10)]
 
     def get_logits_with_grad(self, env, board, target_row, target_col):
+        assert all(board[r][c] is not None for r in range(9) for c in range(9)), f"board contains None at reset"
         box = self.box_idx(target_row, target_col)
         row_cells, row_pos = self._extract_row_input(board, target_row)
         col_cells, col_pos = self._extract_col_input(board, target_col)

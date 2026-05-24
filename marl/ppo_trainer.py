@@ -36,13 +36,13 @@ class PPOTrainer:
 
     def _select_cell_mrv(self, env):
         empty_cells = env.get_empty_cell()
-        return min(
+        selected = min(
             empty_cells,
             key=lambda cell: sum(
                 env.is_valid(cell[0], cell[1], d) for d in range(1, 10)
             ),
         )
-
+        return selected
 
     def collect_rollouts(self, env, solution) -> dict:
         all_cell_values = []
@@ -80,8 +80,15 @@ class PPOTrainer:
                 "box": self.agent_manager.box_agent_idx(self.agent_manager.box_idx(target_row, target_col)),
             }
 
-            dist = Categorical(logits=logits)
             digit = self.arbitrator.decide(scores, agent_indices, self.agent_manager, action_mask)
+
+            if digit is None:
+                all_rewards[-1] -= 5.0
+                break
+
+            dist = Categorical(logits=logits)
+
+
             digit_idx = digit - 1
             digit_idx_t = torch.tensor([digit_idx] * 3, dtype=torch.long).to(self.device)
             log_probs = dist.log_prob(digit_idx_t)
@@ -139,6 +146,8 @@ class PPOTrainer:
         returns = rollout["returns"]
         boards = rollout["boards"]
 
+        returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+
         T = cell_values.size(0)
 
         cv_flat = cell_values.view(T * 3, 9)
@@ -171,7 +180,13 @@ class PPOTrainer:
                 torch.clamp(ratio, 1 - self.clip_param, 1 + self.clip_param) * advantages_flat,
             ).mean()
 
-            value_loss = nn.functional.mse_loss(new_values, returns)
+            values_clipped = rollout["values"] + torch.clamp(
+                new_values - rollout["values"], -self.clip_param, self.clip_param
+            )
+            value_loss = torch.max(
+                nn.functional.mse_loss(new_values, returns),
+                nn.functional.mse_loss(values_clipped, returns)
+            ).mean()
 
             entropy_loss = -entropy.mean()
 

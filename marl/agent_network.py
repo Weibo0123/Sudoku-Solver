@@ -52,7 +52,8 @@ class AgentTransformer(nn.Module):
         x = x.mean(dim=1)
 
         logits = self.output_head(x)
-        logits = logits.masked_fill(-action_mask, float("-inf"))
+        logits = torch.nan_to_num(logits, nan=0.0, posinf=1e9, neginf=-1e9)
+        logits = logits.masked_fill(~action_mask, float("-inf"))
 
         return logits
 

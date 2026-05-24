@@ -33,6 +33,8 @@ class Arbitrator:
 
     def _compute_weight(self, agent_idc: int, accuracy: float):
         remaining = self.remaining[agent_idc]
+        if remaining == 0:
+            raise ValueError(f"Agent {agent_idc} has remaining=0 but is still being queried. This should never happen.")
         if remaining == 1:
             return float("inf")
         return accuracy * (1.0 / remaining)
@@ -51,7 +53,12 @@ class Arbitrator:
             weight = self._compute_weight(idx, accuracy)
             weighted_scores += weight * scores[agent_type].to(self.device)
 
+        weighted_scores = torch.nan_to_num(weighted_scores, nan=0.0, posinf=1e9, neginf=-1e9)
+
         weighted_scores[~action_mask.to(self.device)] = float("-inf")
+
+        if not action_mask.any():
+            return None
 
         digit = weighted_scores.argmax().item() + 1
         return digit
