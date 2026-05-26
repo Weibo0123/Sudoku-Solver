@@ -98,33 +98,23 @@ class SudokuEnv:
     def step(self, action):
         row, col, value = action
         self.steps += 1
-        reward = 0
         done = False
 
         if self.board[row][col] != 0:
-            reward = -0.1
-            return self.get_state(), reward, done, {}
+            return self.get_state(), 0, done, {}
 
         if not self.is_valid(row, col, value):
-            reward = -0.1
-            return self.get_state(), reward, done, {}
+            return self.get_state(), 0, done, {}
 
         self.history.append((row, col, 0))
         self.board[row][col] = value
-        reward = 0.1
-
-        if value == self.solution[row][col]:
-            reward += 1.0
-        else:
-            reward -= 0.5
 
         if self.is_solved():
-            reward += 10.0
             done = True
         elif self.steps >= self.max_steps:
             done = True
 
-        return self.get_state(), reward, done, {}
+        return self.get_state(), 0, done, {}
 
     def print_board(self):
         for r in range(self.size):
