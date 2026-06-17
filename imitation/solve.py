@@ -1,6 +1,24 @@
 # solve.py
 
 def is_valid(board, row, col, value):
+    """
+    Checks the validity of placing a value in a specific cell of the Sudoku board.
+
+    Parameters:
+    board : list[list[int]]
+        The Sudoku board represented as a 2D list of integers.
+    row : int
+        The row index where the value is to be placed.
+    col : int
+        The column index where the value is to be placed.
+    value : int
+        The value to be checked for placement.
+
+    Returns:
+    bool
+        True if the value can be legally placed in the specified cell of the
+        Sudoku board, otherwise False.
+    """
     size = len(board)
     box_size = int(size ** 0.5)
 
@@ -19,6 +37,20 @@ def is_valid(board, row, col, value):
 
 
 def solve_and_record(board):
+    """
+    Solve the Sudoku puzzle and record each step of the solving process.
+
+    Parameters:
+        board: list[list[int]]
+            A 9x9 grid representing the Sudoku puzzle where empty cells are denoted by 0.
+
+    Returns:
+        list[tuple[list[list[int]], tuple[int, int, int]]] | None
+            A list of tuples capturing the solving steps. Each tuple contains:
+            - A snapshot of the board as a 9x9 grid.
+            - A tuple (row, col, num) identifying the cell and the number placed.
+            If the puzzle is unsolvable, returns None.
+    """
     if board is None:
         return None
 
