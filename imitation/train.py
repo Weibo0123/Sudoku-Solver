@@ -11,6 +11,19 @@ from env.sudoku_env import SudokuEnv
 
 
 def solve_with_mrv(env, model):
+    """
+    Solve a puzzle using a Minimum Remaining Values (MRV) heuristic.
+
+    Parameters:
+        env: The puzzle-solving environment. The environment must support
+            retrieving the current puzzle state, listing valid actions, performing
+            actions, checking if the solution is complete, and undoing actions.
+        model: The predictive model used to determine the best move among several
+            valid options when needed.
+
+    Returns:
+        bool: True if the puzzle has been solved successfully, False otherwise.
+    """
     state = env.get_state()
 
     for _ in range(500):
@@ -50,6 +63,12 @@ def solve_with_mrv(env, model):
 
 
 def train():
+    """
+    Trains a neural network model for solving Sudoku puzzles. The function follows a supervised
+    learning approach using a generated dataset of Sudoku puzzles and their corresponding solutions.
+    The training process includes epochs of data loading, forward propagation, loss computation,
+    backward propagation, and optimization updates.
+    """
     X, y_cell, y_num = generate_dataset(num_puzzles=500, size=9)
     X_tensor = torch.FloatTensor(X)
     y_cell_tensor = torch.LongTensor(y_cell)
@@ -59,6 +78,7 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_fn = nn.CrossEntropyLoss()
 
+    # Prepare data
     dataset    = TensorDataset(X_tensor, y_cell_tensor, y_num_tensor)
     dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
 
